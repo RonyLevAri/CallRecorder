@@ -12,9 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private MenuItem activeMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,20 +80,36 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+
+        // Update selected/deselected MenuItems
+        if (activeMenuItem != null)
+            activeMenuItem.setChecked(false);
+        activeMenuItem = item;
+        item.setChecked(true);
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_listen) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
+            Toast toast = Toast.makeText(this, "listening", Toast.LENGTH_SHORT);
+            toast.show();
+        } else if (id == R.id.nav_settings) {
+            Toast toast = Toast.makeText(this, "settings", Toast.LENGTH_SHORT);
+            toast.show();
+        } else if (id == R.id.nav_messages) {
+            Toast toast = Toast.makeText(this, "messages", Toast.LENGTH_SHORT);
+            toast.show();
+        } else if (id == R.id.nav_archive) {
+            Toast toast = Toast.makeText(this, "archive", Toast.LENGTH_SHORT);
+            toast.show();
+        } else if (id == R.id.nav_trash) {
+            Toast toast = Toast.makeText(this, "trash", Toast.LENGTH_SHORT);
+            toast.show();
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+            Toast toast = Toast.makeText(this, "share", Toast.LENGTH_SHORT);
+            toast.show();
+        } else if (id == R.id.nav_help) {
+            Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
+            toast.show();
 
         }
 
