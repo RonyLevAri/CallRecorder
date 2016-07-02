@@ -5,23 +5,18 @@
         android:id="@+id/nav_group_1"
         android:checkableBehavior="all">
         <item
-            android:id="@+id/nav_listen"
+            android:id="@+id/nav_Recordings"
             android:icon="@drawable/ic_menu_listen_black"
-            android:title="Listen To Calls" />
-
+            android:title="Recordings" />
         <item
-            android:id="@+id/nav_settings"
-            android:icon="@drawable/ic_menu_settings"
-            android:title="Settings" />
+            android:id="@+id/nav_messages"
+            android:icon="@drawable/ic_menu_message"
+            android:title="Default Retun Message" />
     </group>
 
     <group
         android:id="@+id/nav_group_2"
         android:checkableBehavior="all">
-        <item
-            android:id="@+id/nav_messages"
-            android:icon="@drawable/ic_menu_message"
-            android:title="Messages" />
         <item
             android:id="@+id/nav_archive"
             android:icon="@drawable/ic_menu_archive"
@@ -33,54 +28,10 @@
     </group>
 
     <group
-        android:id="@+id/nav_group_3"
-        android:checkableBehavior="all">
-        <item
-            android:id="@+id/nav_share"
-            android:icon="@drawable/ic_menu_share"
-            android:title="Share" />
-    </group>
-
-    <group
         android:id="@+id/nav_group_4">
         <item
             android:id="@+id/nav_help"
             android:icon="@drawable/ic_menu_help"
             android:title="Help" />
     </group>
-
-    <!--<item android:title="Database">-->
-        <!--<menu>-->
-            <!--<item-->
-                <!--android:id="@+id/nav_messages"-->
-                <!--android:icon="@drawable/ic_menu_message"-->
-                <!--android:title="Messages" />-->
-            <!--<item-->
-                <!--android:id="@+id/nav_archive"-->
-                <!--android:icon="@drawable/ic_menu_archive"-->
-                <!--android:title="Archive" />-->
-            <!--<item-->
-                <!--android:id="@+id/nav_trash"-->
-                <!--android:icon="@drawable/ic_menu_delete_black"-->
-                <!--android:title="Trash" />-->
-        <!--</menu>-->
-    <!--</item>-->
-
-    <!--<item android:title="Communicate">-->
-        <!--<menu>-->
-            <!--<item-->
-                <!--android:id="@+id/nav_share"-->
-                <!--android:icon="@drawable/ic_menu_share"-->
-                <!--android:title="Share" />-->
-        <!--</menu>-->
-    <!--</item>-->
-
-    <!--<item android:title="Help">-->
-        <!--<menu>-->
-            <!--<item-->
-                <!--android:id="@+id/nav_help"-->
-                <!--android:icon="@drawable/ic_menu_help"-->
-                <!--android:title="Help" />-->
-        <!--</menu>-->
-    <!--</item>-->
 </menu>

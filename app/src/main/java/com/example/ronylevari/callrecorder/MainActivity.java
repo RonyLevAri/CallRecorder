@@ -17,12 +17,14 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private MenuItem activeMenuItem;
+    private MenuItem mActiveMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -70,7 +72,9 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_sort_ascending) {
+            return true;
+        } else if (id == R.id.action_sort_descending) {
             return true;
         }
 
@@ -82,34 +86,28 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
 
         // Update selected/deselected MenuItems
-        if (activeMenuItem != null)
-            activeMenuItem.setChecked(false);
-        activeMenuItem = item;
+        if (mActiveMenuItem != null)
+            mActiveMenuItem.setChecked(false);
+        mActiveMenuItem = item;
         item.setChecked(true);
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_listen) {
-            Toast toast = Toast.makeText(this, "listening", Toast.LENGTH_SHORT);
-            toast.show();
-        } else if (id == R.id.nav_settings) {
-            Toast toast = Toast.makeText(this, "settings", Toast.LENGTH_SHORT);
-            toast.show();
-        } else if (id == R.id.nav_messages) {
+       if (id == R.id.nav_Recordings) {
             Toast toast = Toast.makeText(this, "messages", Toast.LENGTH_SHORT);
             toast.show();
-        } else if (id == R.id.nav_archive) {
+        } else if (id == R.id.nav_messages) {
             Toast toast = Toast.makeText(this, "archive", Toast.LENGTH_SHORT);
             toast.show();
-        } else if (id == R.id.nav_trash) {
+        } else if (id == R.id.nav_archive) {
             Toast toast = Toast.makeText(this, "trash", Toast.LENGTH_SHORT);
             toast.show();
-        } else if (id == R.id.nav_share) {
-            Toast toast = Toast.makeText(this, "share", Toast.LENGTH_SHORT);
-            toast.show();
-        } else if (id == R.id.nav_help) {
-            Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
-            toast.show();
+        } else if (id == R.id.nav_trash) {
+           Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
+           toast.show();
+       } else if (id == R.id.nav_help) {
+           Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
+           toast.show();
 
         }
 
