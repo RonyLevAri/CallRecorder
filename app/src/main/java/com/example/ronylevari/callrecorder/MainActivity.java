@@ -239,8 +239,7 @@ public class MainActivity extends AppCompatActivity
             getSupportActionBar().setTitle(title);
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        mDrawer.closeDrawer(GravityCompat.START);
     }
 
 }

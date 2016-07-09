@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.ronylevari.callrecorder">
 
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -19,5 +22,11 @@
             </intent-filter>
         </activity>
     </application>
+
+    <!--<receiver android:name=".listener.SmsListener">-->
+        <!--<intent-filter>-->
+            <!--<action android:name="android.provider.Telephony.SMS_RECEIVED" />-->
+        <!--</intent-filter>-->
+    <!--</receiver>-->
 
 </manifest>
