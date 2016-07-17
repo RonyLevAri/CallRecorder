@@ -15,7 +15,7 @@ import com.example.ronylevari.callrecorder.constants.AppConstants;
 
 public class FragmentNoContent extends Fragment {
 
-    public static String TAG = "Fragment No Content";
+    public static final String TAG = "FragmentNoContent";
     private String title;
 
     public FragmentNoContent() {}

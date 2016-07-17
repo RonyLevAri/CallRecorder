@@ -16,22 +16,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.example.ronylevari.callrecorder.constants.AppConstants;
+import com.example.ronylevari.callrecorder.fragments.FragmentAllRecordings;
 import com.example.ronylevari.callrecorder.fragments.FragmentNoContent;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    public static String TAG = "Main Activity";
+    public static final String TAG = "MainActivity";
     private MenuItem mActiveMenuItem;
     private int mActiveMenuItemId;
     private boolean mFirstUpload;
     private boolean mIsContentAvailable;
+    private Fragment mCurrentFrag;
+
+    private boolean mIsOnActionMode;
+    private TextView mContextualCounter;
+
     private Toolbar mToolbar;
     private FloatingActionButton mFab;
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +75,16 @@ public class MainActivity extends AppCompatActivity
         // load saved navigation state if present
         if (savedInstanceState != null) {
             mActiveMenuItemId = savedInstanceState.getInt(AppConstants.SAVE_NAV_MENU_OPTION);
+            mIsOnActionMode = savedInstanceState.getBoolean(AppConstants.SAVE_ACTION_MODE);
         } else {
             mActiveMenuItemId = R.id.nav_recordings;
+            mIsOnActionMode = false;
         }
         mNavigationView.getMenu().findItem(mActiveMenuItemId).setChecked(true);
+        mContextualCounter = (TextView) findViewById(R.id.numer_of_pressed_items);
+        if (!mIsOnActionMode) {
+            mContextualCounter.setVisibility(View.GONE);
+        }
 
         // load content according to navigation state
         displayMainContent(mActiveMenuItemId);
@@ -117,14 +131,15 @@ public class MainActivity extends AppCompatActivity
 
         // save navigation menu id to initialize the right content
         outState.putInt(AppConstants.SAVE_NAV_MENU_OPTION, mActiveMenuItemId);
+        outState.putBoolean(AppConstants.SAVE_ACTION_MODE, mIsOnActionMode);
         Log.d(TAG, "active navigation item saved");
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
+            mDrawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
@@ -166,28 +181,8 @@ public class MainActivity extends AppCompatActivity
 
         // Handle navigation view item clicks here.
         mActiveMenuItemId = item.getItemId();
-
         displayMainContent(mActiveMenuItemId);
 
-//       if (mActiveMenuItemId == R.id.nav_recordings) {
-//            Toast toast = Toast.makeText(this, "messages", Toast.LENGTH_SHORT);
-//            toast.show();
-//        } else if (mActiveMenuItemId == R.id.nav_messages) {
-//            Toast toast = Toast.makeText(this, "archive", Toast.LENGTH_SHORT);
-//            toast.show();
-//        } else if (mActiveMenuItemId == R.id.nav_archive) {
-//            Toast toast = Toast.makeText(this, "trash", Toast.LENGTH_SHORT);
-//            toast.show();
-//        } else if (mActiveMenuItemId == R.id.nav_trash) {
-//           Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
-//           toast.show();
-//       } else if (mActiveMenuItemId == R.id.nav_help) {
-//           Toast toast = Toast.makeText(this, "help", Toast.LENGTH_SHORT);
-//           toast.show();
-//        }
-//
-//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -203,30 +198,33 @@ public class MainActivity extends AppCompatActivity
                 message = "You have no new recordings";
                 bundle.putString(AppConstants.NO_CONTENT_TITLE, "You have no new recordings");
                 title  = "Recordings";
+                fragment = FragmentAllRecordings.newInstance();
                 break;
             case R.id.nav_messages:
                 message = "You have no new recordings";
                 bundle.putString(AppConstants.NO_CONTENT_TITLE, "You have no new recordings");
                 title = "Default Return message";
+                fragment = FragmentNoContent.newInstance(message);
                 break;
             case R.id.nav_archive:
                 message = "You have no archived items";
                 bundle.putString(AppConstants.NO_CONTENT_TITLE, "You have no archived items");
                 title  = "Archive";
+                fragment = FragmentNoContent.newInstance(message);
                 break;
             case R.id.nav_trash:
                 message = "Trash is empty";
                 bundle.putString(AppConstants.NO_CONTENT_TITLE, "Trash is empty");
                 title = "Trash";
+                fragment = FragmentNoContent.newInstance(message);
                 break;
             default:
                 message = "You have no new recordings";
                 bundle.putString(AppConstants.NO_CONTENT_TITLE, "You have no new recordings");
                 title = "Recordings";
+                fragment = FragmentNoContent.newInstance(message);
                 break;
         }
-
-        fragment = FragmentNoContent.newInstance(message);
 
         if (fragment != null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
