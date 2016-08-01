@@ -1,40 +1,149 @@
 package com.example.ronylevari.callrecorder.adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ronylevari.callrecorder.R;
+import com.example.ronylevari.callrecorder.bl.ChildRecordItem;
+import com.example.ronylevari.callrecorder.bl.DatabaseObject;
 import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
+import com.example.ronylevari.callrecorder.database.DatabaseAdapter;
+import com.example.ronylevari.callrecorder.service.DatabaseService;
 
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
 
-public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdapter.RecordingViewHolder>   {
+public class RecordingDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnSwipeListener {
+
+    public static final String TAG = "Adapter";
 
     private LayoutInflater mInflater;
-    private ArrayList<ParentRecordingItem> mData = new ArrayList<>();
     private Context mContext;
+
+    private ArrayList<AdapterListener> mListeners = new ArrayList<>();
+
+    private static final int PARENT_VIEW_TYPE = 0;
+    private static final int CHILD_VIEW_TYPE = 1;
+
+    private DatabaseAdapter mDBAdapter;
+    private ArrayList<? extends DatabaseObject> mData = new ArrayList<>();
 
     private SparseBooleanArray mSelectedItems = new SparseBooleanArray();
     private boolean mIsInSelectionMode = false;
 
-    public RecordingDataAdapter(Context context, ArrayList<ParentRecordingItem> data) {
+    public RecordingDataAdapter(Context context, ArrayList<? extends DatabaseObject> data, DatabaseAdapter dbAdapter) {
+
+        this.mDBAdapter = dbAdapter;
         this.mContext = context;
-        mInflater = LayoutInflater.from(context);
+        this.mInflater = LayoutInflater.from(context);
+
         if (data == null) {
             throw new IllegalArgumentException("model data should not be null");
         }
+
         this.mData = data;
+        update(mData);
+    }
+
+
+    public void update(ArrayList<? extends DatabaseObject> data) {
+        this.mData = data;
+        notifyDataSetChanged();
+    }
+
+    public void setAdapterListener(AdapterListener listener) {
+        mListeners.add(listener);
+    }
+
+    public void unregisterAdapterListener(AdapterListener listener) {
+        if (mListeners.contains(listener)) {
+            mListeners.remove(listener);
+        }
+    }
+
+    @Override
+    public void onSwipe(int position) {
+        deleteItem(position);
+    }
+
+    public void deleteItem(int position) {
+        Intent intent = new Intent(mContext, DatabaseService.class);
+        if(mData.get(position) instanceof ParentRecordingItem) {
+            ParentRecordingItem p = (ParentRecordingItem) mData.get(position);
+            if (p.getIsTrashed()) {
+                intent.setAction(DatabaseService.ACTION_DELETE_PARENT);
+                intent.putExtra(DatabaseService.EXTRA_PARENT, p);
+            } else {
+                intent.setAction(DatabaseService.ACTION_TRASH_PARENT);
+                intent.putExtra(DatabaseService.EXTRA_PARENT, p);
+            }
+        } else {
+            ChildRecordItem c = (ChildRecordItem) mData.get(position);
+            if (c.getIsTrashed()) {
+                intent.setAction(DatabaseService.ACTION_DELETE_CHILD);
+                intent.putExtra(DatabaseService.EXTRA_CHILD, c);
+            } else {
+                intent.setAction(DatabaseService.ACTION_TRASH_CHILD);
+                intent.putExtra(DatabaseService.EXTRA_CHILD, c);
+            }
+        }
+        mContext.startService(intent);
+        mData.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        if (viewType == PARENT_VIEW_TYPE) {
+            View view = mInflater.inflate(R.layout.card_parent_recording_data_row, parent, false);
+            return new ParentRecordingViewHolder(view);
+        } else {
+            View view = mInflater.inflate(R.layout.card_child_recording_data_row, parent, false);
+            return new ChildRecordingViewHolder(view);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+
+        if (holder instanceof ParentRecordingViewHolder) {
+            ParentRecordingItem current = (ParentRecordingItem) mData.get(position);
+            ParentRecordingViewHolder parentHolder = (ParentRecordingViewHolder) holder;
+            parentHolder.bindParentRecordingItem(current);
+        } else {
+            ChildRecordItem current = (ChildRecordItem) mData.get(position);
+            ChildRecordingViewHolder childHolder = (ChildRecordingViewHolder) holder;
+            childHolder.bindChildRecordingItem(current);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return mData.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+
+        Object obj = mData.get(position);
+
+        if (obj instanceof ParentRecordingItem) {
+            return PARENT_VIEW_TYPE;
+        } else {
+            return CHILD_VIEW_TYPE;
+        }
     }
 
     public void setIsInSelectionMode(boolean isInSelectionMode) {
@@ -45,12 +154,14 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
         return mIsInSelectionMode;
     }
 
-    public boolean isSelected(int position) {
+    public boolean isRegisteredAsSelected(int position) {
         return getSelectedItems().contains(position);
     }
 
     public List<Integer> getSelectedItems() {
-        List<Integer> selectedItemsPos = new ArrayList<Integer>(mSelectedItems.size());
+
+        List<Integer> selectedItemsPos = new ArrayList<>(mSelectedItems.size());
+
         for(int i = 0; i < mSelectedItems.size(); i++) {
             selectedItemsPos.add(mSelectedItems.keyAt(i));
         }
@@ -58,6 +169,7 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
     }
 
     public void toggleSelection(int position) {
+
         if(mSelectedItems.get(position, false)) {
             mSelectedItems.delete(position);
         } else {
@@ -67,48 +179,24 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
     }
 
     public void clearSelection() {
+
+        setIsInSelectionMode(false);
+
         List<Integer> selectedItemsPos = getSelectedItems();
         mSelectedItems.clear();
+
         for (int i = 0; i < selectedItemsPos.size(); i++) {
-            notifyItemChanged(i);
+            notifyItemChanged(selectedItemsPos.get(i));
         }
-        setIsInSelectionMode(false);
     }
 
     public int getSelectedItemCount() {
         return mSelectedItems.size();
     }
 
-    @Override
-    public RecordingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.card_parent_recording_data_row, parent, false);
-        return new RecordingViewHolder(view);
-    }
+    class ParentRecordingViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
-    @Override
-    public void onBindViewHolder(RecordingViewHolder holder, int position) {
-        ParentRecordingItem current = mData.get(position);
-        holder.bindParentRecordingItem(current);
-    }
-
-    public void addItem(int position) {
-        notifyItemInserted(position);
-    }
-
-    public void removeItem(int position) {
-        mData.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    @Override
-    public int getItemCount() {
-        return mData.size();
-    }
-
-
-    class RecordingViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-
-        private TextView mListName;
+        private TextView mName;
         private TextView mNumberOfItems;
         private TextView mDate;
         private ImageView mAvatar;
@@ -117,10 +205,10 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
 
         private ParentRecordingItem mParentRecording;
 
-        public RecordingViewHolder(View itemView) {
+        public ParentRecordingViewHolder(View itemView) {
             super(itemView);
 
-            this.mListName = (TextView) itemView.findViewById(R.id.list_item_name);
+            this.mName = (TextView) itemView.findViewById(R.id.list_item_name);
             this.mDate = (TextView) itemView.findViewById(R.id.time);
             this.mNumberOfItems = (TextView) itemView.findViewById(R.id.number_of_items);
             this.mAvatar = (ImageView) itemView.findViewById(R.id.avatar);
@@ -129,30 +217,25 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
 
             mCard.setOnClickListener(this);
             mCard.setOnLongClickListener(this);
-            mCard.setLongClickable(true);
         }
 
-        @Override
-        public void onClick(View v) {
+        public void bindParentRecordingItem(ParentRecordingItem parentRecording) {
 
-            if(!getIsInSelectionMode()) {
-                Toast.makeText(mContext, "Launch List Item " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+            mParentRecording = parentRecording;
+
+            mName.setText(mParentRecording.getRecordName());
+            mNumberOfItems.setText(Integer.toString(mParentRecording.getNumActiveChildren()));
+            if (isRegisteredAsSelected(getAdapterPosition())) {
+                mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_selected);
             } else {
-                if (isSelected(getAdapterPosition())) {
-                    mCard.setCardBackgroundColor(R.color.cardview_light_background);
-                    mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_unselected);
-                } else {
-                    setIsInSelectionMode(true);
-                    mCard.setCardBackgroundColor(R.color.colorDivider);
-                    mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_selected);
-                }
-                toggleSelection(getAdapterPosition());
-                if (getSelectedItemCount() == 0) {
-                    clearSelection();
-                    Toast.makeText(mContext, "Notify Activity to close the context menu", Toast.LENGTH_SHORT).show();
-                }
+                mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_unselected);
             }
-
+            // TODO arrange the date variable
+            mDate.setText(Long.toString(mParentRecording.getStartTime()));
+            if (mParentRecording.getIsClosed()) {
+                mIsLocked.setImageResource(R.drawable.ic_lock_black_24dp);
+            } else
+                mIsLocked.setImageResource(R.drawable.ic_lock_open_black_24dp);
         }
 
         @Override
@@ -160,27 +243,107 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecordingDataAdap
 
             if(!getIsInSelectionMode()) {
                 setIsInSelectionMode(true);
-                Toast.makeText(mContext, "Launch context menu " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+                for(AdapterListener l : mListeners) {
+                        l.onContextMenuState();
+                }
             }
             v.callOnClick();
             return true;
         }
 
-        public void bindParentRecordingItem(ParentRecordingItem parentRecording) {
-            mParentRecording = parentRecording;
+        @Override
+        public void onClick(View v) {
 
-            mListName.setText(mParentRecording.getRecordName());
-            mNumberOfItems.setText(Integer.toString(mParentRecording.getNumberOfItemsInRecord()));
-            mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_unselected);
-            GregorianCalendar startDate = mParentRecording.getStartDate();
-            CharSequence time = DateUtils.getRelativeDateTimeString(mDate.getContext(), startDate.getTimeInMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME);
-            mDate.setText(time);
+            if(!getIsInSelectionMode()) {
+                for(AdapterListener l : mListeners) {
+                    l.onChildrenRequest(mParentRecording, mParentRecording.getIsTrashed());
+                }
+            } else {
+                toggleSelection(getAdapterPosition());
+                if (getSelectedItemCount() == 0) {
+                    for(AdapterListener l : mListeners) {
+                        l.onDeselectingAllItems();
+                    }
+                }
+            }
 
-            if (mParentRecording.isClosed()) {
-                mIsLocked.setImageResource(R.drawable.ic_lock_black_24dp);
-            } else
-                mIsLocked.setImageResource(R.drawable.ic_lock_open_black_24dp);
         }
     }
 
+    class ChildRecordingViewHolder extends RecyclerView.ViewHolder {
+
+        private ImageView mAvatar;
+        private TextView mCaller;
+        private TextView mRoute;
+        private TextView mDate;
+        private ImageView mBtnCall;
+        private RelativeLayout mMessageSection;
+        private TextView mMessage;
+        private View mDivider;
+        private ImageView mBtnMessage;
+        private ImageView mBtnDelete;
+
+        private ChildRecordItem mChildRecord;
+
+        public ChildRecordingViewHolder(View itemView) {
+            super(itemView);
+
+            this.mAvatar =(ImageView) itemView.findViewById(R.id.avatar);
+            this.mCaller = (TextView) itemView.findViewById(R.id.caller);
+            this.mRoute = (TextView) itemView.findViewById(R.id.route);
+            this.mDate = (TextView) itemView.findViewById(R.id.time);
+            this.mBtnDelete = (ImageView) itemView.findViewById(R.id.btn_delete);
+            this.mMessageSection = (RelativeLayout) itemView.findViewById(R.id.message_section);
+            this.mMessage = (TextView) itemView.findViewById(R.id.message);
+            this.mDivider = itemView.findViewById(R.id.message_divider);
+            this.mBtnCall = (ImageView) itemView.findViewById(R.id.btn_dial);
+            this.mBtnMessage =(ImageView) itemView.findViewById(R.id.btn_message);
+
+            mBtnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deleteItem(getAdapterPosition());
+                }
+            });
+
+            mBtnCall.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent call = new Intent(Intent.ACTION_DIAL,
+                            Uri.parse("tel:" + mChildRecord.getPhoneNumber()));
+                    mContext.startActivity(call);
+                    Toast.makeText(mContext, "Dialer " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+            mBtnMessage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(mContext, "Send message " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+        }
+
+        public void bindChildRecordingItem(ChildRecordItem childRecord) {
+
+            mChildRecord = childRecord;
+
+            mCaller.setText(mChildRecord.getCaller());
+            mRoute.setText(mChildRecord.getIsSMS() == true ? "Message" : "Call");
+            if (!mChildRecord.getIsSMS()) {
+                mMessageSection.setVisibility(View.GONE);
+                mDivider.setVisibility(View.GONE);
+            } else {
+                mMessageSection.setVisibility(View.VISIBLE);
+                mDivider.setVisibility(View.VISIBLE);
+                mMessage.setText(mChildRecord.getMessage());
+            }
+            // TODO arrange the date variable
+            mDate.setText(Long.toString(mChildRecord.getCallTime()));
+        }
+    }
 }
+

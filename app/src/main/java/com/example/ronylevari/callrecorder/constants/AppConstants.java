@@ -1,9 +1,13 @@
 package com.example.ronylevari.callrecorder.constants;
 
-public class AppConstants {
+import com.example.ronylevari.callrecorder.bl.ChildRecordItem;
 
-    public static final String SAVE_NAV_MENU_OPTION = "save navigation menu option";
-    public static final String SAVE_ACTION_MODE = "save action mode";
-    public static final String NO_CONTENT_TITLE = "no content text";
-    public static final String NO_CONTENT = "No content to display";
+
+public final class AppConstants {
+
+    public static final String SHARED_PREFS_FILE_NAME = "shared prefs";
+    public static final String SHARED_PREFS_IS_RECORDING_KEY = "is recording";
+    public static final String SHARED_PREFS_RETURN_MESSAGE_KEY = "return message";
+    public static final String SHARED_PREFS_FILE_PERMISSION = "file permission";
+
 }

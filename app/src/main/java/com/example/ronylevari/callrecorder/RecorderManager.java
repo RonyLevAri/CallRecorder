@@ -1,6 +1,8 @@
-package com.example.ronylevari.callrecorder.bl;
+package com.example.ronylevari.callrecorder;
 
 import android.content.Context;
+
+import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
 
 import java.util.ArrayList;
 
@@ -23,7 +25,7 @@ public class RecorderManager {
         return sManager;
     }
 
-    public void setmIsRecording(boolean isRecording) {
+    public void setIsRecording(boolean isRecording) {
         this.mIsRecording = isRecording;
     }
 

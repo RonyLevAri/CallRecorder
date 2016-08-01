@@ -17,10 +17,10 @@
     <group
         android:id="@+id/nav_group_2"
         android:checkableBehavior="all">
-        <item
-            android:id="@+id/nav_archive"
-            android:icon="@drawable/ic_menu_archive"
-            android:title="Archive" />
+        <!--<item-->
+            <!--android:id="@+id/nav_archive"-->
+            <!--android:icon="@drawable/ic_menu_archive"-->
+            <!--android:title="Archive" />-->
         <item
             android:id="@+id/nav_trash"
             android:icon="@drawable/ic_menu_delete_black"

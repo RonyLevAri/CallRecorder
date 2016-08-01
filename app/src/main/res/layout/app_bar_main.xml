@@ -27,15 +27,6 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
-            <TextView
-                android:id="@+id/numer_of_pressed_items"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="hahaha"
-                android:textColor="@color/colorText"
-                android:textStyle="bold"
-                android:textSize="@dimen/card_title"/>
-
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>

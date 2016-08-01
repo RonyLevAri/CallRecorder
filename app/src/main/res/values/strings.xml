@@ -5,14 +5,15 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-    <string name="action_sort_ascending">Sort By Date (ASC)</string>
-    <string name="action_sort_descending">Sort By Date (DESC)</string>
-
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_sort_ascending_date">Sort By Date (ASC)</string>
+    <string name="action_sort_descending_date">Sort By Date (DESC)</string>
+    <string name="action_sort_ascending_name">Sort By Contact (ASC)</string>
+    <string name="action_sort_descending_name">Sort By Contact (DESC)</string>
 
     <string name="delete_row">Delete Record</string>
     <string name="export_to_mail">Export to email</string>
     <string name="back_home">Back to home</string>
+    <string name="reply_via_message">Reply via message</string>
+    <string name="reply_via_dialer">Reply via dialer</string>
 
 </resources>
