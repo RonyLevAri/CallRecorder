@@ -9,21 +9,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
-import android.telephony.SmsManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.ronylevari.callrecorder.MainActivity;
 import com.example.ronylevari.callrecorder.R;
 import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
 import com.example.ronylevari.callrecorder.constants.AppConstants;
 import com.example.ronylevari.callrecorder.database.DatabaseAdapter;
+import com.example.ronylevari.callrecorder.receivers.CallReceiver;
+import com.example.ronylevari.callrecorder.receivers.SmsReceiver;
 
 public class CallListenerService extends Service {
 
@@ -33,10 +30,10 @@ public class CallListenerService extends Service {
     public static final String STOP_SERVICE_BROADCAST_KEY = "stop callRecorder service intent key";
     public static final int STOP_SERVICE_REQUEST = 1;
 
-    NotifyStopServiceReceiver mNotifyStopServiceReceiver;
+    private NotifyStopServiceReceiver mNotifyStopServiceReceiver;
+    private CallReceiver mCallReceiver;
+    private SmsReceiver mSmsReceiver;
 
-    private Looper mServiceLooper;
-    private ServiceHandler mServiceHandler;
 
     private long parentRecordingId;
 
@@ -65,19 +62,11 @@ public class CallListenerService extends Service {
         super.onCreate();
         Log.d(TAG, "service onCreate");
 
-        // To avoid cpu-blocking, we create a background handler to run our service
-        //HandlerThread thread = new HandlerThread("TutorialService", Process.THREAD_PRIORITY_BACKGROUND);
-        // start the new handler thread
-        //thread.start();
-        //mServiceLooper = thread.getLooper();
-        // start the service using the background handler
-        //mServiceHandler = new ServiceHandler(mServiceLooper);
-
         // create new parent recording
         parentRecordingId = createNewParentRecording();
 
         // update sharedPreferences that is recording
-        updateSharedRecording(true);
+        updateSharedRecording(true, parentRecordingId);
 
         // get user's default return message from sharedPreference
         this.defaultReturnMessage = loadReturnMessageFromSharedPref();
@@ -114,6 +103,17 @@ public class CallListenerService extends Service {
 
         notificationManager.notify(NOTIFICATION_IDENTIFIER, notification);
 
+        //register CallReceiver
+        mCallReceiver = new CallReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(android.telephony.TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+        registerReceiver(mCallReceiver, filter);
+
+        //register SmsReceiver
+        mSmsReceiver = new SmsReceiver();
+        IntentFilter filter2 = new IntentFilter();
+        filter2.addAction(SmsReceiver.ACTION_SMS_RECEIVED);
+        registerReceiver(mSmsReceiver, filter2);
     }
 
     private long createNewParentRecording() {
@@ -130,10 +130,11 @@ public class CallListenerService extends Service {
         return id;
     }
 
-    private void updateSharedRecording(boolean isRecording) {
+    private void updateSharedRecording(boolean isRecording, long parentRecordingId) {
         SharedPreferences sharedPreferences = getSharedPreferences(AppConstants.SHARED_PREFS_FILE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(AppConstants.SHARED_PREFS_IS_RECORDING_KEY, isRecording);
+        editor.putLong(AppConstants.SHARED_PREFS_CURRENT_PARENT_RECORDING_KEY, parentRecordingId);
         editor.commit();
     }
 
@@ -146,60 +147,24 @@ public class CallListenerService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "on start command");
 
-        // call a new service handler. The service ID can be used to identify the service
-//        Message message = mServiceHandler.obtainMessage();
-//        message.arg1 = startId;
-//        mServiceHandler.sendMessage(message);
-
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        updateSharedRecording(false);
+        updateSharedRecording(false, parentRecordingId);
         closeParentRecordingInDatabase(parentRecordingId);
         unregisterReceiver(mNotifyStopServiceReceiver);
+        unregisterReceiver(mCallReceiver);
+        unregisterReceiver(mSmsReceiver);
     }
 
     private void closeParentRecordingInDatabase(long parentRecordingId) {
-
-
-    }
-
-    // TODO
-    public void startListening() {
-        // register two broadcast receivers - one for SMS one for calls
-    }
-
-    // TODO
-    public void processIncomingCall() {
-
-    }
-
-    // TODO
-    public void sendDefaultReturnMessageToCaller(String destinationNumber, String smsText) {
-        // Get the default instance of SmsManager
-        SmsManager smsManager = SmsManager.getDefault();
-        // Send a text based SMS
-        smsManager.sendTextMessage(destinationNumber, null, smsText, null, null);
-    }
-
-    // TODO
-    public void updateDataBase() {
-
-    }
-
-    protected void showToast(final String msg){
-        //gets the main thread
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // run this code in the main thread
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            }
-        });
+        Intent intent = new Intent(this, DatabaseService.class);
+        intent.setAction(DatabaseService.ACTION_CLOSE_PARENT);
+        intent.putExtra(DatabaseService.EXTRA_PARENT_ID, parentRecordingId);
+        startService(intent);
     }
 
     @Nullable
@@ -208,32 +173,4 @@ public class CallListenerService extends Service {
         return null;
     }
 
-    // Object responsible for
-    private final class ServiceHandler extends Handler {
-
-        public ServiceHandler(Looper looper) {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            // Well calling mServiceHandler.sendMessage(message); from onStartCommand,
-            // this method will be called.
-
-            // Add your cpu-blocking activity here
-            // Well calling mServiceHandler.sendMessage(message);
-            // from onStartCommand this method will be called.
-
-            // Add your cpu-blocking activity here
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            showToast("Finishing TutorialService, id: " + msg.arg1);
-            // the msg.arg1 is the startId used in the onStartCommand,
-            // so we can track the running sevice here.
-            stopSelf(msg.arg1);
-        }
-    }
 }

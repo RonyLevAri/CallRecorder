@@ -30,17 +30,22 @@ public class DatabaseAdapter {
 
         int trashed = isTrashed ? 1 : 0;
 
+
         ArrayList<ParentRecordingItem> parentRecordings = new ArrayList<>();
 
+        //String [] args = {"0"};
         String [] args = {Integer.toString(trashed)};
         String [] columns = {DatabaseHelper.PARENT_UID, DatabaseHelper.PARENT_NAME, DatabaseHelper.PARENT_OPENED_ON, DatabaseHelper.PARENT_CLOSED_ON, DatabaseHelper.PARENT_IS_CLOSED, DatabaseHelper.PARENT_IS_TRASHED, DatabaseHelper.PARENT_NUM_ACTIVE_CHILDREN, DatabaseHelper.PARENT_NUM_TRASHED_CHILDREN};
         String tableName = DatabaseHelper.TABLE_NAME_PARENT;
         SQLiteDatabase db = helper.getReadableDatabase();
         String orderBy = DatabaseHelper.PARENT_OPENED_ON + " DESC";
-
+        String whereClause = DatabaseHelper.PARENT_NUM_TRASHED_CHILDREN + " >?";
+        if (trashed == 0) {
+            whereClause = DatabaseHelper.PARENT_NUM_ACTIVE_CHILDREN + " >?";
+        }
         Cursor res = null;
         try {
-            res = db.query(tableName, columns, helper.PARENT_IS_TRASHED + " =?", args, null, null, orderBy , null);
+            res = db.query(tableName, columns, DatabaseHelper.PARENT_IS_TRASHED + " =?", args, null, null, orderBy , null);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -323,38 +328,6 @@ public class DatabaseAdapter {
 
     }
 
-    public void deleteFromDatabase(DatabaseObject objToDelete) {
-
-        String table = "";
-        String idCol = "";
-        long theId;
-
-        if (objToDelete instanceof ParentRecordingItem) {
-            table = DatabaseHelper.TABLE_NAME_PARENT;
-            idCol = DatabaseHelper.PARENT_UID;
-            theId = ((ParentRecordingItem) objToDelete).getID();
-        } else {
-            table = DatabaseHelper.TABLE_NAME_CHILDREN;
-            idCol = DatabaseHelper.CHILD_UID;
-            theId = ((ChildRecordItem) objToDelete).getID();
-        }
-
-        String whereClause =  idCol + " =?";
-        String [] args = {Long.toString(theId)};
-
-        SQLiteDatabase db = helper.getWritableDatabase();
-        db.beginTransaction();
-
-        try {
-            db.delete(table, whereClause, args);
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            db.endTransaction();
-        }
-    }
-
     // Database SQLiteOpenHelper inner class
      private static class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -467,7 +440,7 @@ public class DatabaseAdapter {
             try {
                 db.execSQL(CREATE_PARENT_TABLE);
                 db.execSQL(CREATE_CHILDREN_TABLE);
-                initData(db);
+                //initData(db);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

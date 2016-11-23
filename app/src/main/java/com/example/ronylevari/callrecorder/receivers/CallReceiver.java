@@ -1,18 +1,27 @@
 package com.example.ronylevari.callrecorder.receivers;
 
+import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import com.example.ronylevari.callrecorder.service.RecordFlowIntentService;
 
 import java.util.Date;
 
 public class CallReceiver extends BroadcastReceiver {
 
+
+    public static final String TAG = "CallReceiver";
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private static Date callStartTime;
     private static boolean isIncoming;
     private static String savedNumber;  //because the passed incoming is only valid in ringing
+
+    public CallReceiver() {
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -88,27 +97,34 @@ public class CallReceiver extends BroadcastReceiver {
 
     //Derived classes should override these to respond to specific events of interest
     private void onIncomingCallReceived(Context ctx, String number, Date start) {
-        // get the caller from contact provider and write to database
+        Log.d(TAG, "A call from " + number + " At " + start);
     }
 
     private void onIncomingCallAnswered(Context ctx, String number, Date start) {
-        // get the caller from contact provider and write to database
+        Log.d(TAG, "A call from " + number + " At " + start);
     }
 
     private void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-
+        Log.d(TAG, "A call from " + number + " At " + start);
     }
 
     private void onOutgoingCallStarted(Context ctx, String number, Date start) {
-
+        Log.d(TAG, "A call from " + number + " At " + start);
     }
 
     private void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
-
+        Log.d(TAG, "A call from " + number + " At " + start);
     }
 
     private void onMissedCall(Context ctx, String number, Date start) {
-        // get the caller from contact provider and write to database
+        Log.d(TAG, "A call from " + number + " At " + start);
+        Intent intent = new Intent(ctx, RecordFlowIntentService.class);
+        intent.setAction(RecordFlowIntentService.ACTION_INCOMING_RECEIVED);
+        intent.putExtra(RecordFlowIntentService.EXTRA_CALLER, number);
+        intent.putExtra(RecordFlowIntentService.EXTRA_INCOMING_TIME, start.getTime());
+        intent.putExtra(RecordFlowIntentService.EXTRA_MESSAGE, "");
+        ctx.startService(intent);
+
     }
 }
 

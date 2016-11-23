@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.view.ActionMode;
@@ -36,7 +35,7 @@ import com.example.ronylevari.callrecorder.bl.DatabaseObject;
 import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
 import com.example.ronylevari.callrecorder.constants.AppConstants;
 import com.example.ronylevari.callrecorder.database.DatabaseAdapter;
-import com.example.ronylevari.callrecorder.receivers.FileCreatedReceiver;
+import com.example.ronylevari.callrecorder.receivers.OnFileCreatedForExportReceiver;
 import com.example.ronylevari.callrecorder.service.CallListenerService;
 import com.example.ronylevari.callrecorder.service.CommaSeparatedValuesService;
 import com.example.ronylevari.callrecorder.widgets.CallRecorderRecyclerView;
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<? extends DatabaseObject> mData = new ArrayList<>();
 
     // receivers
-    FileCreatedReceiver mNewsFileReadyReceiver = new FileCreatedReceiver();
+    OnFileCreatedForExportReceiver mNewsFileReadyReceiver = new OnFileCreatedForExportReceiver();
 
     // App state variables
     private boolean mIsRecording;
@@ -91,7 +90,10 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_SMS,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.READ_PHONE_STATE
     };
 
     private boolean mFileAccessPermission;
@@ -103,7 +105,10 @@ public class MainActivity extends AppCompatActivity
         if (permission != PackageManager.PERMISSION_GRANTED) {
             // We don't have permission so prompt the user
             if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    || ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    || ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_SMS)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.SEND_SMS)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_PHONE_STATE)) {
                 ActivityCompat.requestPermissions(
                         activity,
                         PERMISSIONS_STORAGE,
@@ -381,7 +386,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         mIsRecording = loadRecordingStateFromSharedPref();
-        registerReceiver(mNewsFileReadyReceiver, new IntentFilter(FileCreatedReceiver.ACTION_EXPORT_TO_MAIL));
+        registerReceiver(mNewsFileReadyReceiver, new IntentFilter(OnFileCreatedForExportReceiver.ACTION_EXPORT_TO_MAIL));
     }
 
     @Override

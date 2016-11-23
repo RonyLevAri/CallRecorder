@@ -20,6 +20,7 @@ import com.example.ronylevari.callrecorder.bl.DatabaseObject;
 import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
 import com.example.ronylevari.callrecorder.database.DatabaseAdapter;
 import com.example.ronylevari.callrecorder.service.DatabaseService;
+import com.example.ronylevari.callrecorder.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -230,8 +231,7 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecyclerView.View
             } else {
                 mAvatar.setImageResource(R.drawable.ic_parent_recording_avatar_unselected);
             }
-            // TODO arrange the date variable
-            mDate.setText(Long.toString(mParentRecording.getStartTime()));
+            mDate.setText(Utils.getDateTime(mParentRecording.getStartTime()));
             if (mParentRecording.getIsClosed()) {
                 mIsLocked.setImageResource(R.drawable.ic_lock_black_24dp);
             } else
@@ -309,10 +309,9 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecyclerView.View
             mBtnCall.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent call = new Intent(Intent.ACTION_DIAL,
-                            Uri.parse("tel:" + mChildRecord.getPhoneNumber()));
+                    Intent call = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mChildRecord.getPhoneNumber()));
                     mContext.startActivity(call);
-                    Toast.makeText(mContext, "Dialer " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(mContext, "Dialer " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -320,7 +319,9 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecyclerView.View
             mBtnMessage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(mContext, "Send message " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
+                    Intent smsIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("sms:" + mChildRecord.getPhoneNumber()));
+                    mContext.startActivity(smsIntent);
+//                    Toast.makeText(mContext, "Send message " + getAdapterPosition(), Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -341,8 +342,7 @@ public class RecordingDataAdapter extends RecyclerView.Adapter<RecyclerView.View
                 mDivider.setVisibility(View.VISIBLE);
                 mMessage.setText(mChildRecord.getMessage());
             }
-            // TODO arrange the date variable
-            mDate.setText(Long.toString(mChildRecord.getCallTime()));
+            mDate.setText(Utils.getDateTime(mChildRecord.getCallTime()));
         }
     }
 }

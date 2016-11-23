@@ -27,6 +27,7 @@ public class DatabaseService extends IntentService {
     public static final String EXTRA_PARENT = "com.example.ronylevari.callrecorder.service.extra.EXTRA_PARENT";
     public static final String EXTRA_CHILD = "com.example.ronylevari.callrecorder.service.extra.EXTRA_CHILD";
     public static final String EXTRA_PARENTS = "com.example.ronylevari.callrecorder.service.extra.EXTRA_PARENTS";
+    public static final String EXTRA_PARENT_ID = "com.example.ronylevari.callrecorder.service.extra.EXTRA_PARENT_ID";
 
     private DatabaseAdapter mDbAdapter = new DatabaseAdapter(this);
 
@@ -40,6 +41,7 @@ public class DatabaseService extends IntentService {
             final String action = intent.getAction();
             ParentRecordingItem p = null;
             ChildRecordItem c = null;
+            long parentId = 0;
             ArrayList<ParentRecordingItem> pa = new ArrayList<>();
 
             switch (action) {
@@ -72,8 +74,8 @@ public class DatabaseService extends IntentService {
                     handleActionMergeParents(pa);
                     break;
                 case ACTION_CLOSE_PARENT:
-                    p = intent.getParcelableExtra(EXTRA_PARENT);
-                    handleActionCloseParent(p);
+                    parentId = intent.getLongExtra(EXTRA_PARENT_ID, 0);
+                    handleActionCloseParent(parentId);
                     break;
                 default:
                     break;
@@ -83,10 +85,12 @@ public class DatabaseService extends IntentService {
 
     private void handleActionInsertParent(ParentRecordingItem p) {
         Log.d(TAG, "Inserting parent " + p);
+        mDbAdapter.insertParentToDatabase(p);
     }
 
     private void handleActionInsertChild(ChildRecordItem c) {
         Log.d(TAG, "Inserting child " + c);
+        mDbAdapter.insertChildToDatabase(c);
     }
 
     private void handleActionTrashParent(ParentRecordingItem p) {
@@ -142,8 +146,12 @@ public class DatabaseService extends IntentService {
         }
     }
 
-    private void handleActionCloseParent(ParentRecordingItem p) {
-        Log.d(TAG, "Closing parent " + p);
+    private void handleActionCloseParent(long parentId) {
+        Log.d(TAG, "Closing parent " + parentId);
+        ParentRecordingItem p = mDbAdapter.getParentOf(parentId);
+        p.setIsClosed(true);
+        mDbAdapter.updateParentRecording(p);
+
     }
 
     private void handleActionMergeParents(ArrayList<ParentRecordingItem> parents) {

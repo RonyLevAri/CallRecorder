@@ -7,7 +7,7 @@ import android.os.Environment;
 import com.example.ronylevari.callrecorder.bl.ChildRecordItem;
 import com.example.ronylevari.callrecorder.bl.ParentRecordingItem;
 import com.example.ronylevari.callrecorder.database.DatabaseAdapter;
-import com.example.ronylevari.callrecorder.receivers.FileCreatedReceiver;
+import com.example.ronylevari.callrecorder.receivers.OnFileCreatedForExportReceiver;
 import com.example.ronylevari.callrecorder.utils.Utils;
 
 import java.io.File;
@@ -104,8 +104,8 @@ public class CommaSeparatedValuesService extends IntentService {
 
     private void broadcastFileReady(String path) {
         Intent intent = new Intent();
-        intent.setAction(FileCreatedReceiver.ACTION_EXPORT_TO_MAIL);
-        intent.putExtra(FileCreatedReceiver.EXTRA_PATH, path);
+        intent.setAction(OnFileCreatedForExportReceiver.ACTION_EXPORT_TO_MAIL);
+        intent.putExtra(OnFileCreatedForExportReceiver.EXTRA_PATH, path);
         sendBroadcast(intent);
     }
 

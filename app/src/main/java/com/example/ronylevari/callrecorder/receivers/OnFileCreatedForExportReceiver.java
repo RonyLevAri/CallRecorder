@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-public class FileCreatedReceiver extends BroadcastReceiver {
+public class OnFileCreatedForExportReceiver extends BroadcastReceiver {
 
     public static final String ACTION_EXPORT_TO_MAIL = "com.example.ronylevari.callrecorder.service.action.ACTION_EXPORT_TO_MAIL";
     public static final String EXTRA_PATH = "com.example.ronylevari.callrecorder.service.action.PATH";
